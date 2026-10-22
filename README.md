@@ -40,3 +40,16 @@ Net sales are calculated by applying the discount to each order item.
 ## Author
 
 Data analytics portfolio project.
+
+---
+
+## 📊 Dashboard Power BI
+
+### 1. Resumen ejecutivo de ventas
+
+![Resumen ejecutivo de ventas](dashboard_resumen_ventas.png)
+
+### 2. Análisis de productos y clientes
+
+![Análisis de productos y clientes](dashboard_productos_clientes.png)
+
