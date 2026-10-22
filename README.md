@@ -47,9 +47,9 @@ Data analytics portfolio project.
 
 ### 1. Resumen ejecutivo de ventas
 
-![Resumen ejecutivo de ventas](dashboard_resumen_ventas.png)
+![Resumen ejecutivo de ventas](dashboard_resumen_ventas.PNG)
 
 ### 2. Análisis de productos y clientes
 
-![Análisis de productos y clientes](dashboard_productos_clientes.png)
+![Análisis de productos y clientes](dashboard_productos_clientes.PNG)
 
