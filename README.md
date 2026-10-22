@@ -53,3 +53,6 @@ Data analytics portfolio project.
 
 ![Análisis de productos y clientes](dashboard_productos_clientes.PNG)
 
+### 3. Análisis de descuentos
+![Análisis de descuentos](dashboard_analisis_descuentos.PNG)
+
