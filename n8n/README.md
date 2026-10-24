@@ -32,4 +32,4 @@ The workflow has been executed using 365 daily sales records. The normal executi
 This automation is part of **Smart Sales**, a portfolio project combining SQL, Power BI and workflow automation to demonstrate an end-to-end sales analytics solution.
 ## Workflow Preview
 
-![Sales Drop Monitoring Workflow](N8N_sales__monitoring.PNG.)
+![Sales Drop Monitoring Workflow](sales__monitoring.PNG.)
