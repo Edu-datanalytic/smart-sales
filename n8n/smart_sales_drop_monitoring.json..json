@@ -1,0 +1,223 @@
+{
+  "name": "Smart Sales - Sales Drop Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "\nconst THRESHOLD_PERCENT = 20;\n\nconst rows = $input.all()\n  .map(item => ({\n    date: String(item.json.date),\n    sales: Number(item.json.sales)\n  }))\n  .filter(row => row.date && Number.isFinite(row.sales))\n  .sort((a, b) => a.date.localeCompare(b.date));\n\nif (rows.length < 2) {\n  throw new Error(`Solo se han recibido ${rows.length} filas válidas.`);\n}\n\nconst latest = rows[rows.length - 1];\nconst previous = rows.slice(0, -1);\n\nconst average = previous.reduce((sum, row) => sum + row.sales, 0) / previous.length;\n\nconst dropPercent = average > 0\n  ? Math.round(((average - latest.sales) / average) * 1000) / 10\n  : 0;\n\nreturn [{\n  json: {\n    rowsReceived: rows.length,\n    latestDate: latest.date,\n    latestSales: latest.sales,\n    averageSales: Math.round(average * 100) / 100,\n    dropPercent,\n    threshold: THRESHOLD_PERCENT,\n    isSignificantDrop: dropPercent >= THRESHOLD_PERCENT\n  }\n}];\n\n"
+      },
+      "id": "da56f066-c00b-4991-b76a-7e27bd5f3c68",
+      "name": "Analyze Sales",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "drop",
+              "leftValue": "={{ $json.isSignificantDrop }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2b9619a5-1989-496f-ac7f-293b3104d7c4",
+      "name": "Significant Drop?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "type": "string",
+              "value": "ALERT"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "type": "string",
+              "value": "=Sales dropped {{ $json.dropPercent }}% on {{ $json.latestDate }}: {{ $json.latestSales }} vs. average {{ $json.averageSales }} (threshold {{ $json.threshold }}%)."
+            },
+            {
+              "id": "8481e199-a931-49a8-ad99-70209bcbaafa",
+              "name": "alert",
+              "value": "=expression\n{{\n  '🚨 ALERTA DE CAÍDA DE VENTAS\\n' +\n  'Fecha: ' + $json.latestDate + '\\n' +\n  'Ventas del último día: ' + Number($json.latestSales).toFixed(2) + ' €\\n' +\n  'Media de ventas: ' + Number($json.averageSales).toFixed(2) + ' €\\n' +\n  'Caída detectada: ' + $json.dropPercent + '%\\n' +\n  'Umbral configurado: ' + $json.threshold + '%'\n}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "907b20b5-3b40-4a51-9ffb-12ccb4ce50cb",
+      "name": "Create Alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "type": "string",
+              "value": "OK"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "type": "string",
+              "value": "=Sales are normal on {{ $json.latestDate }}: change of {{ $json.dropPercent }}% drop vs. average."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7bc02e35-3698-4ab4-8cc1-3f752a524d2f",
+      "name": "No Problem",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        80
+      ],
+      "id": "54301e1a-01a3-4d63-a97f-aa9b39254e18",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1W5xMAYv0eJsph7tzyxI_Ip-nbV0CcX90",
+          "mode": "list",
+          "cachedResultName": "smart_sales_daily.csv..csv",
+          "cachedResultUrl": "https://drive.google.com/file/d/1W5xMAYv0eJsph7tzyxI_Ip-nbV0CcX90/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "89c9b269-6fac-4537-89c8-d1238ee07f96",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "9TuCxmZsWOiqjpvN",
+          "name": "Google Drive account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Analyze Sales": {
+      "main": [
+        [
+          {
+            "node": "Significant Drop?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Significant Drop?": {
+      "main": [
+        [
+          {
+            "node": "Create Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Problem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Analyze Sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1b73e864-b56a-4bce-9e0a-8d57cf03d069",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0768b96122cc7d9bf9e0f4d727c43e83d6f41886daf86e4809e4a349a62ec032"
+  },
+  "nodeGroups": [],
+  "id": "10dpVaXER9nBk1yO",
+  "tags": []
+}
